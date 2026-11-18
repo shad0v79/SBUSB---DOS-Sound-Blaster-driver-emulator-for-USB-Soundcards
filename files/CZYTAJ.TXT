@@ -1,0 +1,213 @@
+SOUND BLASTER 16 PRZEZ USB DLA eBOX-2300SX - INSTRUKCJA
+========================================================
+(English version: README.TXT)
+
+Obraz uruchamia DOS (FreeDOS 1.4) z SBEMU - emulatorem Sound Blastera 16
+- rozszerzonym o sterownik karty dzwiekowej USB. Gry DOS widza zwykla
+karte SB16 (A220 I5 D1 H5 T6), a dzwiek wychodzi przez karte USB.
+
+Sprawdzone na: eBOX-2300SX (DM&P Vortex86SX, bez FPU), karta Behringer
+UCA202 (uklad TI PCM2902). Testowo: karty z ukladem C-Media CM108.
+
+
+1. ZAPIS OBRAZU
+---------------
+Plik ebox_cf16.img zapisz na karte CF (min. 16 MB) albo pendrive
+programem Rufus (tryb "obraz DD") lub Win32DiskImager. W BIOS eBOX-a
+ustaw start z tego nosnika.
+
+
+2. PODLACZENIE (WAZNE)
+----------------------
+* Klawiatura USB: przednie LEWE gniazdo.
+* Karta dzwiekowa USB: przednie PRAWE albo tylne gniazdo.
+  BIOS obsluguje klawiature USB przerwaniami pierwszego kontrolera USB
+  (przednie lewe gniazdo). Przednie prawe i tylne gniazdo to drugi
+  kontroler; karta i klawiatura USB nie moga byc na nim razem - SBEMU
+  wtedy nie znajdzie karty i napisze, co przelozyc.
+* Klawiatura PS/2 dziala zawsze.
+* Kabel 2x cinch LINE OUT -> LINE IN (opcjonalny) pozwala programom
+  testowym sprawdzic, co naprawde wychodzi z karty. Odlacz go tylko
+  wtedy, gdy wlaczasz odsluch LINE IN (sprzezenie).
+
+
+3. MENU STARTOWE
+----------------
+  1 - Gry: SB16, pamiec XMS              <- domyslnie
+  2 - Gry: SB16, pamiec XMS + EMS        (gry wymagajace EMS)
+  3 - Test karty, nagrywanie, mikser     (SBMIX, USBREC, USBMIX)
+  4 - Bez SBEMU: USBTONE, CPUTEST        (testy samej karty USB)
+  5 - Diagnostyka: SBEMU uruchamiasz recznie, z komunikatami
+
+Opcje 1, 2 i 3 laduja: JEMMEX (XMS, UMB, ewentualnie EMS), QPIEMU (gry
+trybu rzeczywistego), HDPMI32i (DPMI) i SBEMU, ustawiaja BLASTER i
+wczytuja zapisane ustawienia miksera (USBMIX.CFG).
+
+
+4. PAMIEC: XMS, EMS, UMB, DPMI
+------------------------------
+                       opcja 1      opcja 2        opcja 4
+  XMS                  tak          tak            tak (HIMEMX)
+  EMS                  nie          tak (ramka D000) nie
+  UMB (pamiec gorna)   ok. 96 KB    ok. 32 KB      nie
+  DPMI / VCPI          tak / tak    tak / tak      nie / nie
+  wolna dla gier       ok. 613 KB*  podobnie       ok. 618 KB*
+  * zmierzone w emulatorze QEMU; na eBOX-ie sprawdzisz programem PAMIEC.
+
+* Wiekszosc gier: opcja 1.
+* Gra pisze, ze brak EMS (Expanded Memory) - opcja 2. Ramka EMS lezy pod
+  D000, bo obszar E000-EFFF zajmuje BIOS i kontrolery USB eBOX-a.
+* Gry z DOS4GW i innymi rozszerzaczami korzystaja z DPMI (HDPMI32i) albo
+  VCPI (JEMMEX) - dzialaja w opcjach 1 i 2.
+* Stare gry, ktore glupieja przy duzej ilosci XMS: JEMMEX zglasza im
+  najwyzej 8 MB (X2MAX=8192); nowsze programy (XMS 3.0) widza calosc.
+* Gry, ktore nie dzialaja pod menedzerem pamieci (wymagaja "czystego"
+  trybu rzeczywistego), nie moga miec emulowanego SB - SBEMU potrzebuje
+  JEMMEX do przechwytywania portow karty. Mozna je uruchomic w opcji 4
+  (bez dzwieku SB).
+* SBEMU zostawia swoje bloki na gorze pamieci konwencjonalnej (PAMIEC
+  /HIGH w AUTOEXEC), a HDPMI32i laduje sie do UMB - stad ok. 613 KB.
+
+
+5. GRANIE
+---------
+  GRACFG  - ustawienia dzwieku Alien Carnage (wybierz Sound Blaster, Music)
+  GRA     - Alien Carnage
+Ustawienia SB dla innych gier: port 220, IRQ 5, DMA 1, DMA16 5, SB16.
+Przerwanie zmienisz w AUTOEXEC.BAT: SET SBIRQ=5 (mozliwe 5, 7, 9) - potem
+ustaw je tez w grze (np. GRACFG).
+Ograniczenia:
+* Brak muzyki FM (OPL/AdLib): procesor Vortex86SX nie ma FPU, a
+  emulacja FM go wymaga. Gry z muzyka FM zagraja tylko dzwiek cyfrowy.
+  Gry z muzyka cyfrowa (MOD, np. Alien Carnage) graja w calosci.
+* Brak MIDI (MPU-401).
+* Bez FM dzwiek cyfrowy gra w pelnej skali (oryginalny SBEMU sciszal go
+  o polowe, zostawiajac miejsce na FM).
+
+
+6. PROGRAMY
+-----------
+USBMIX   Mikser z suwakami: glosnosc glowna i dzwieku cyfrowego (rejestry
+         SB16, 2 dB na krok, osobno L/P), odsluch LINE IN (-46..0 dB),
+         mierniki wyjscia i LINE IN.
+           strzalki - wybor i zmiana   PgUp/PgDn - o 10 dB
+           Tab - oba kanaly/lewy/prawy  M - wycisz   S - zapisz   Esc - koniec
+         USBMIX /L wczytuje zapisane ustawienia (robi to AUTOEXEC).
+         Gry czesto ustawiaja mikser same - wtedy ich ustawienia wygrywaja.
+         Przy przesterze LINE IN (sprzezenie) odsluch sam sie wylacza.
+SBMIX    Test karty "jak w grze": ton 440 Hz (muzyka) i pikniecia 2 kHz
+         (efekty) w 4 sposobach zapisu do bufora DMA. W opcji 3 SAM
+         sprawdza nagranie i wypisuje OK albo BLAD (takze dla LINE IN,
+         jesli jest kabel). Wynik w SBMIX.LOG.
+         SBMIX /L mierzy opoznienie: od startu dzwieku w SB do wyslania przez
+         USB (i do powrotu na LINE IN). Glownie zalezy od bufora sterownika.
+SBTEST   Test wszystkich trybow SB (8/16 bit, mono/stereo, IRQ). W tescie 6
+         nizszy ton ma byc po LEWEJ. SBTEST /N - bez pytan. Log SBTEST.LOG.
+USBREC   Nagrywanie (opcja 3): sterownik trzyma ostatnie 20 s dzwieku
+         (wyjscie i LINE IN; cyfrowa cisza ponad 1 s nie nadpisuje nagrania).
+           USBREC        mierniki (Esc - koniec)
+           USBREC /I     stan          USBREC /W    zapis RECOUT.WAV,
+           USBREC /C     wyczysc                     RECIN.WAV, STAN.TXT
+           USBREC /W /S:10  tylko ostatnie 10 s
+         W opcji 3 GRA zapisuje nagranie sama po wyjsciu z gry.
+         Stare pliki dostaja numer (RECOUT01.WAV...), nic nie jest nadpisane.
+         Pelny zapis zajmuje ok. 7,5 MB - na karcie 16 MB miesci sie jeden.
+USBTONE  Test karty USB bez SBEMU (tylko opcja 4): ton 1 kHz.
+           /LR    na zmiane lewy i prawy kanal (napis pokazuje, ktory gra)
+           /LOOP  pomiar przez kabel LINE OUT -> LINE IN (LOOP.WAV)
+           /S     tylko skan PCI i portow (nic nie zmienia, bez opisu karty)
+           /I     opis karty (deskryptory) do logu, bez dzwieku (nowe karty)
+         Wynik w USBTONE.LOG (stare dostaja numer: USBTON01.LOG...).
+CPUTEST  Test procesora.
+PAMIEC   Pamiec: konwencjonalna (lista blokow), UMB, XMS, EMS, VCPI, DPMI.
+         PAMIEC /K bez listy, PAMIEC /E po angielsku.
+POMOC    Ta instrukcja (HELP - angielska). STRONA plik.txt - dowolny tekst.
+
+
+7. OPCJE STEROWNIKA USB (zmienna USBPCM, ustawiana PRZED SBEMU)
+-------------------------------------------------------------
+Przyklad: SET USBPCM=L64 R20
+  Cn   wymus kontroler OHCI nr n (0 = pierwszy)
+  Ln   bufor n ms (16-128). AUTOEXEC ustawia go zmienna USBBUF (L32);
+       bufor = opoznienie dzwieku. Przy trzaskach zwieksz (L48, L64),
+       dla najmniejszego opoznienia sprobuj L16 i sprawdz SBMIX.
+  Rn   nagrywaj stale ostatnie n sekund (1-60) wyjscia i LINE IN
+  I/O  z R: nagrywaj tylko LINE IN (I) albo tylko wyjscie (O)
+  X    nie uruchamiaj wejscia LINE IN (bez miernikow, odsluchu, nagrania)
+  W    zamien lewy i prawy kanal (tak dzialal oryginalny SBEMU)
+  V    wszystkie komunikaty na ekranie
+Log sterownika: USBPCM.LOG. Oryginalny SBEMU: \SBEMU\SBEMUORG.EXE.
+
+
+8. MS-DOS 6.22 / 7.1 ZAMIAST FreeDOS (NIETESTOWANE)
+-------------------------------------------------
+MS-DOS nie moze byc dolaczony (licencja), ale obraz jest przygotowany:
+w katalogu glownym sa CONFIG.SYS (menu w skladni MS-DOS, te same 5
+opcji), wspolny AUTOEXEC.BAT i zarezerwowane pierwsze wpisy na IO.SYS
+i MSDOS.SYS.
+  1. Zapisz obraz na karte CF jak zwykle.
+  2. Uruchom eBOX z dyskietki/pendrive'a startowego MS-DOS 6.22 lub 7.1
+     (karta CF musi byc wtedy dyskiem C:).
+  3. Wpisz:  SYS C:
+     (wymienia FreeDOS na MS-DOS: sektor startowy, IO.SYS, MSDOS.SYS,
+     COMMAND.COM; pozostale pliki zostaja).
+  4. Uruchom ponownie z karty CF - pojawi sie menu MS-DOS.
+Jesli SYS odmowi ("No room for system"): sformatuj karte z MS-DOS
+(FORMAT C: /S), na PC otworz ebox_cf16.img w 7-Zip i skopiuj wszystkie
+pliki (oprocz KERNEL.SYS, COMMAND.COM, IO.SYS, MSDOS.SYS) na karte.
+Powrot do FreeDOS: zapisz obraz od nowa.
+MS-DOS 7.1 (z Windows 98): jesli po SYS zamiast menu probuje startowac
+Windows, w pliku C:\MSDOS.SYS (tekstowy, ukryty) w sekcji [Options]
+ustaw BootGUI=0.
+
+
+8a. INSTALACJA NA INNYM DYSKU Z DOS-em (SBUSB 1.0 Lite)
+-------------------------------------------------------
+Katalogi \INSTAL\PL i \INSTAL\EN zawieraja paczke z instalatorem dla
+istniejacego FreeDOS lub MS-DOS 6.22/7.1: INSTALL dodaje do menu
+startowego pozycje z SBEMU i karta USB. Opis: \INSTAL\PL\INSTALUJ.TXT.
+
+
+9. KARTY C-MEDIA CM108 (TESTOWO)
+--------------------------------
+Sterownik obsluguje karty zgodne z USB Audio 1.0 z wyjsciem 48 kHz
+16 bit stereo. Dla CM108 dodano: wejscie mono (mikrofon) kopiowane na
+oba kanaly oraz wylaczenie wyciszenia (Feature Unit) przy starcie.
+Karty z wewnetrznym odsluchem mikrofonu maja go wyciszony. Karta
+GeneralPlus 1B3F:2008 dziala; na prawdziwej CM108 nie bylo testow.
+Pierwszy krok z nowa karta: opcja 4, USBTONE /I (wyjmij i wloz karte,
+gdy program poprosi), potem przeslij USBTONE.LOG. USBTONE /LOOP wymaga
+wejscia stereo, wiec z karta mono nie zadziala - uzyj SBMIX w opcji 3.
+
+
+10. GDY COS NIE DZIALA
+---------------------
+* "No supported soundcard found": karta w zlym gniezdzie (patrz pkt 2)
+  albo nie jest podlaczona. Szczegoly: USBPCM.LOG.
+* Klawiatura USB przestaje dzialac po starcie SBEMU: karta jest w
+  przednim LEWYM gniezdzie - przeloz ja (pkt 2).
+* Odwrocone kanaly w jakiejs grze: SET USBPCM=W przed SBEMU (opcja 5).
+* Obraz ucina lewa kolumne znakow: funkcja "Auto" w menu monitora LCD.
+* Pliki do przeslania przy problemach: USBPCM.LOG, SBMIX.LOG,
+  SBTEST.LOG, USBTONE.LOG, wynik PAMIEC > PAMIEC.TXT.
+
+
+11. ZAWARTOSC I LICENCJE
+-----------------------
+Tworca: Lukasz Bolesta, z pomoca Claude (asystent AI firmy Anthropic).
+Pelna informacja: LICENCJA.TXT (PL), LICENSE.TXT (EN), tekst GPL: GPL2.TXT.
+
+  KERNEL.SYS, COMMAND.COM  FreeDOS 1.4 (GNU GPL), https://github.com/FDOS
+  HIMEMX.EXE               menedzer XMS (Japheth; domena publiczna +
+                           FreeDOS Himem, GPL/Artistic)
+  SBEMU\SBEMU.EXE          SBEMU (GNU GPL v2) z modulem USB i zmianami;
+                           pelne zrodla: ZRODLA\SBEMUSRC.ZIP, zmiany:
+                           ZRODLA\SBEMU.DIF
+  SBEMU\JEMMEX, JLOAD, QPIEMU  Jemm (Japheth i inni, Artistic License)
+  SBEMU\HDPMI32I.EXE       HX DOS Extender (Japheth, crazii), freeware
+  *.COM, INSTAL\           USBTONE, CPUTEST, SBTEST, SBMIX, USBREC, USBMIX,
+                           PAMIEC, STRONA, INSTALL - licencja MIT
+  CARNAGE\                 Alien Carnage, freeware (c) John Passfield,
+                           niezmienione pliki z wydania 2007 - do uzytku
+                           prywatnego; nie rozpowszechniaj obrazu z gra.
+  ZRODLA\                  zrodla; opis kodu: KOD.TXT (PL), CODE.TXT (EN)

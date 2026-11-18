@@ -1,0 +1,205 @@
+SOUND BLASTER 16 OVER USB (eBOX-2300SX) - CODE DESCRIPTION
+==========================================================
+(Wersja polska: KOD.TXT)
+
+1. ARCHITECTURE
+---------------
+  DOS game --(ports 220h-22Fh, DMA, IRQ 5)--> SBEMU (SB16 emulation, mixing)
+       SBEMU writes 16-bit stereo 48 kHz into a ring buffer (card_DMABUFF)
+       --> sc_usbpcm.c (USB driver inside SBEMU) --> OHCI host controller
+       --> isochronous OUT, 1 packet of 192 bytes per 1 ms frame
+       --> USB Audio Class 1.0 device (TI PCM2902, C-Media CM108 ...)
+
+  Optional: isochronous IN (LINE IN) --> meters, recording rings in XMS,
+  LINE IN monitor (added to the output). A control block in conventional
+  memory ("USBPCM01", usbpcmct.h) lets real-mode tools (USBREC, USBMIX,
+  SBMIX) read meters and recordings and change settings.
+
+  Runtime stack: JEMMEX (XMS/UMB/EMS, V86) + JLOAD QPIEMU (traps I/O of
+  real-mode programs) + HDPMI32i (DPMI host, traps I/O of protected-mode
+  programs) + SBEMU (DJGPP, resident). Everything is integer-only: the
+  Vortex86SX has no FPU (x87 instructions silently return garbage).
+
+
+2. HARDWARE FACTS (eBOX-2300SX, AMI BIOS 28.10.2009)
+----------------------------------------------------
+  OHCI #0 0:0A.0 MMIO E2000 IRQ 9  - front left socket
+  EHCI    0:0A.1 MMIO E3020 IRQ 10
+  OHCI #2 0:0B.0 MMIO E0000 IRQ 11 - front right and rear sockets
+  EHCI    0:0B.1 MMIO E1020 IRQ 14
+  All PCI interrupts are level triggered. EHCI CONFIGFLAG=1, the
+  full-speed ports are handed to the companion OHCI controllers.
+  The BIOS drives USB keyboards WITHOUT SMM: a real-mode handler at
+  E9E4:0390 hooked to IRQ 9/10/11/14, controller table at E620:xxxx,
+  HCCA of controller #0 at E6000. It needs the interrupts of OHCI #0 even
+  for a keyboard on another controller - so the sound card must not sit
+  on OHCI #0, and it cannot share a controller with a USB keyboard.
+  Upper memory: C800-DFFF free, E000-EFFF BIOS/USB (hence EMS frame D000,
+  JEMMEX X=E000-EFFF).
+
+
+3. sc_usbpcm.c - THE USB DRIVER
+-------------------------------
+Detection (USBPCM_adetect)
+  * Reads the USBPCM environment variable (C,L,R,I,O,X,W,V,N,E,S options).
+  * Allocates memory:
+      LOW block (conventional memory, below 640 KB, physical = linear):
+        HCCA 0x000, control ED 0x100, OUT ED 0x110, IN ED 0x120,
+        control TDs 0x200, setup 0x280, IN TDs 0x300 (33 x 32),
+        control block 0x720, OUT TDs 0x820 ((ring+1) x 32). 4.1 KB at 64 ms.
+        Allocated with the DOS "last fit" strategy and UMB unlinked, so it
+        sits at the top of conventional memory and never in a UMB (under
+        JEMM a UMB's linear address is not its physical address).
+        The BIOS USB code runs in V86 mode and can only reach memory below
+        1 MB, which is why everything the controller registers point to
+        lives here.
+      HIGH block (XMS, 4 KB aligned): control data, OUT ring
+        (up to 128 x 192 B), IN packet buffers (33 x 256 B).
+      Recording rings (XMS, optional, R option).
+  * Releases EHCI ports to the companion controllers (ehci_release_all).
+  * Scans PCI for OHCI controllers with a device connected; skips a
+    controller the BIOS uses (bios_uses_hc: IR bit set, an active interrupt
+    ED in the HCCA table, or ports with devices and an empty table).
+  * neutralize_bios_irq: before the takeover the real-mode IRQ vector of the
+    controller is replaced by a small EOI stub, so the BIOS handler never
+    sees the controller in the middle of the takeover.
+  * Takeover (ohci_takeover): never writes HceControl (that killed the USB
+    keyboard), disables only the interrupt sources (0x4000007F) - MIE is
+    shared on the Vortex86SX and is restored after HcReset - resets the
+    controller, sets up HCCA/frame interval, powers the ports.
+  * Enumeration: port reset, GET_DESCRIPTOR(8), SET_ADDRESS 1, device and
+    configuration descriptors (up to 2 KB), find_alt() picks an OUT
+    alternate setting with 2 channels, 16 bit, 48 kHz, MPS >= 192, and an
+    IN setting (stereo preferred, mono accepted - CM108). SET_CONFIGURATION,
+    SET_INTERFACE, SET_CUR sampling frequency (may stall - PCM2902 has a
+    fixed list). Feature Units: the Audio Control topology is parsed;
+    units on the playback and recording paths get mute off and 0 dB,
+    a unit that routes a microphone/line input straight to the speaker
+    inside the device ("sidetone", e.g. GeneralPlus 1B3F:2008) is muted.
+  * Finds other USB controllers on the same IRQ line (sibling_pending)
+    and reports level/edge triggering (ELCR).
+  * setup_ctl(): fills the control block, allocates recording rings,
+    writes the signature last.
+
+Streaming
+  * OUT: one isochronous TD per frame, 192 bytes (48 stereo samples), a
+    queue of "ring length" TDs + 1 dummy. Every 4th TD has DI=0, so the
+    WritebackDoneHead interrupt comes every 4 ms; it is SBEMU's "card IRQ"
+    (card_samples_per_int = 192). service() retires finished TDs (head
+    pointer of the ED), counts late/errored ones, re-queues TDs and
+    resynchronises when the queue ran dry (frame number in the past).
+    getbufpos() calls service() too; the play position = retired frames.
+  * IN: a separate ED behind the OUT ED in the periodic list, 32 TDs, no
+    interrupts (serviced together with OUT). Packet sizes come from the
+    PSW (CC 0 or 9). Mono packets are duplicated to stereo. Lost/late
+    packets are written as silence so the time line stays intact.
+  * Recording (R): every retired OUT frame (exactly what was sent) and
+    every IN packet go into rings in XMS; wr counts bytes. A silence gate
+    stops writing both rings after 1 s of digital silence on the output.
+  * Meters: peak |sample| per channel, cleared by the reading tool.
+  * Monitor: IN samples go through a FIFO and are added (gain mon_gain/256)
+    to OUT slots 3..10 frames ahead of the play position - slots SBEMU
+    has already filled but the controller has not sent yet.
+  * The IRQ handler acknowledges WDH, services the rings, and reports
+    "not ours" when another USB controller on the same line has a pending
+    interrupt, so SBEMU chains to the BIOS handler.
+  * Log USBPCM.LOG: opened, appended and closed for every line (the TSR
+    never closes files, and DOS updates the size only on close).
+
+
+4. CHANGES IN SBEMU (ZRODLA\SBEMU.DIF)
+-------------------------------------
+  makefile         adds sc_usbpcm.c, -DAU_CARDS_LINK_USBPCM=1
+  au_cards.c       USB card first in the list; integer mixer arithmetic
+  main.c           * no FPU (_8087 == 0): OPL3, virtual MPU and PC speaker
+                     emulation off (they use floating point); fsave/frstor
+                     only with an FPU
+                   * SB16 volume: 5-bit registers 30h-33h, 2 dB per step as
+                     on the real CT1745, left/right separately, Q12 integer
+                     gain table; no -6 dB SFX/OPL headroom without OPL
+                   * stereo swap (upstream SBEMU_SWAP_STEREO) off by default,
+                     USBPCM=W turns it on; real SB Pro/SB16 send left first
+                   * DOS "last fit" during start-up so the resident blocks
+                     end up at the top of conventional memory
+  sbemu.c          writes to the SB Pro registers 22h/04h/26h/28h also set
+                   the SB16 5-bit registers, as on the real card
+
+
+5. DOS TOOLS (*.COM, gcc -m16)
+------------------------------
+  Built with the host gcc in 16-bit mode (-m16 -march=i386 -Os
+  -ffreestanding), start.S + link.ld produce a flat .COM at 100h. No C
+  library: DOS/BIOS calls are inline asm (int 21h, 10h, 16h, 2Fh, 67h),
+  other segments are reached through FS. Every helper that calls int 21h
+  declares all registers DOS changes (a missing "+d" once corrupted
+  FDCONFIG.SYS).
+  USBTONE  stand-alone OHCI + UAC1 driver for tests (real mode only - it
+           uses "unreal mode" (FS with a 4 GB limit) for MMIO above 1 MB,
+           impossible under V86): tone, /LR, /LOOP measurement with
+           analysis (frequency, waveform deviation, period regularity in
+           1/256 sample, noise), /S scan, /DUMP BIOS, /K:n stop after a
+           takeover step.
+  SBTEST   classic SB tests (DSP reset/version, mixer, IRQ F2h/F3h, 8-bit
+           single and auto-init, SB Pro stereo, SB16 16-bit stereo/mono,
+           direct DAC).
+  SBMIX    software-mixing test: sample n = 440 Hz + (2 kHz for 100 ms every
+           500 ms), so the ideal output is known; half-buffer mixing and
+           mixing ahead of the DMA counter with 100/20/5 ms lead. With the
+           driver's recording on it reads its own segments from XMS
+           (control block wr markers, XMS move 0Bh) and analyses them with
+           integer quadrature correlation in 10 ms windows: music gaps,
+           effect count/length/spacing, music level under effects.
+           /F injects a fault (self-test), /K keeps the mixer settings.
+  USBREC   control block -> meters, status, WAV saving (XMS lock for the
+           EMB base, XMS move to conventional memory), file rotation.
+  USBMIX   text-mode mixer: SB16 registers through BLASTER+4/+5, monitor
+           gain and meters through the control block, direct video memory,
+           \USBMIX.CFG; /L applies it without a screen.
+  PAMIEC   MCB chain (with UMBs linked), XMS 2/3, EMS, VCPI, DPMI;
+           /HIGH and /LOW set the DOS allocation strategy around SBEMU.
+  CPUTEST  FPU presence/behaviour, exceptions, speed.
+  STRONA   pager (FreeDOS has no MORE in the base set).
+  rotate.h renames old results (NAME.EXT -> NAMEnn.EXT) before saving.
+
+
+6. BUILDING
+-----------
+  SBEMU: DJGPP cross compiler (gcc 12.2) in /opt/djgpp:
+         . /opt/djgpp/setenv; make      -> output/sbemu.exe
+         sources: github.com/crazii/SBEMU + ZRODLA\SBEMU.DIF
+                  (+ SC_USBPC.C = mpxplay/au_cards/sc_usbpcm.c, USBPCMCT.H)
+  Tools: sh build.sh (gcc with -m16, GNU ld)
+  Image: python3 build_img.py ebox_cf16.img - MBR + FAT16 partition
+         (LBA 63, type 04h, mkfs.fat), FreeDOS boot sector, reserved
+         IO.SYS/MSDOS.SYS entries, files via mtools.
+
+
+7. TESTING
+----------
+  QEMU (qemu-system-i386 -m 64):
+    -device pci-ohci,id=ohci -audiodev wav,id=s,path=out.wav
+    -device usb-audio,bus=ohci.0,audiodev=s      (USB card, output only)
+    -device sb16,audiodev=s                      (reference SB16)
+  QEMU's usb-audio has no input, so the LINE IN path (capture, monitor,
+  mono CM108 input) was checked only on the eBOX (stereo PCM2902) or by
+  code review (mono). Real-hardware results: SBMIX OK in all 4 modes on
+  output and LINE IN, loopback latency 2.6-3.7 ms, 0 errors.
+
+
+8. KNOWN LIMITS / IDEAS
+-----------------------
+  * No FM/OPL without an FPU (an integer OPL emulator would be needed).
+  * One USB audio device, OHCI only (no UHCI/EHCI high speed), 48 kHz
+    16-bit stereo output only.
+  * Feature Unit volume is set to 0 dB once; USBMIX controls the SB mixer.
+  * USBTONE truncates configuration descriptors to 1 KB (display only).
+
+
+9. LICENCE
+----------
+Creator: Lukasz Bolesta, with the help of Claude (Anthropic). Own
+programs and scripts: MIT licence. Changes to SBEMU (sc_usbpcm.c,
+main.c, sbemu.c, au_cards.c, makefile): GNU GPL v2 or later, as SBEMU.
+Complete source of the modified SBEMU: SBEMUSRC.ZIP (in the image:
+ZRODLA\SBEMUSRC.ZIP). Details and credits for the code and tools used:
+LICENSE.TXT.

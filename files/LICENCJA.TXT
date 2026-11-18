@@ -1,0 +1,166 @@
+SBUSB 1.0 Lite - Sound Blaster 16 przez karte dzwiekowa USB w DOS
+LICENCJA I PODZIEKOWANIA
+==================================================================
+(English version: LICENSE.TXT)
+
+Tworca: Lukasz Bolesta, z pomoca Claude (asystenta AI firmy Anthropic).
+
+SBUSB to zestaw osobnych programow. Kazdy zachowuje licencje swoich
+autorow. Tabela pokazuje, ktora licencja dotyczy ktorego pliku;
+szczegoly w punktach 2-6.
+
+  Plik(i)                         Licencja            Prawa autorskie
+  ------------------------------  ------------------  ---------------------
+  USBTONE, CPUTEST, SBTEST,       MIT (punkt 2)       Lukasz Bolesta
+  SBMIX, USBREC, USBMIX, PAMIEC,
+  STRONA, INSTALL (.COM),
+  pliki BAT/konfiguracyjne,
+  dokumentacja, skrypty budowania
+  SBEMU.EXE (z modulem USB)       GNU GPL v2          crazii i wspolautorzy
+                                  (punkt 3)           SBEMU, inni,
+                                                      Lukasz Bolesta (USB)
+  JEMMEX.EXE, JLOAD.EXE,          Artistic License /  Japheth, Tom Ehlert,
+  QPIEMU.DLL                      freeware (punkt 4)  Michael Devore
+  HIMEMX.EXE                      domena publiczna +  Japheth; Till Gerken,
+                                  GPL/Artistic (4)    Tom Ehlert
+  HDPMI32I.EXE                    freeware (punkt 4)  Japheth, crazii
+  KERNEL.SYS, COMMAND.COM         GNU GPL (punkt 4)   projekt FreeDOS
+  (tylko w obrazie CF)
+
+Wiazace sa oryginalne angielskie teksty licencji (MIT, GNU GPL v2 -
+GPL2.TXT). Tlumaczenia ponizej sa tylko pomocnicze.
+
+
+1. BRAK GWARANCJI
+-----------------
+Calosc udostepniana jest "TAK JAK JEST", BEZ JAKIEJKOLWIEK GWARANCJI.
+Programy obsluguja bezposrednio sprzet PCI i USB oraz zmieniaja
+CONFIG.SYS i AUTOEXEC.BAT (instalator robi kopie *.SBU). Uzywasz na
+wlasne ryzyko.
+
+
+2. WLASNE PROGRAMY - LICENCJA MIT
+---------------------------------
+Dotyczy: USBTONE.COM, CPUTEST.COM, SBTEST.COM, SBMIX.COM, USBREC.COM,
+USBMIX.COM, PAMIEC.COM, STRONA.COM, INSTALL.COM, ich zrodel (main.c,
+cputest.c, sbtest.c, sbmix.c, usbrec.c, usbmix.c, pamiec.c, strona.c,
+install.c, kbtest.c, rotate.h, usbpcmct.h, sine.h, dbtab.h, start.S,
+link.ld, mbr.asm), build.sh, build_img.py, plikow BAT i konfiguracyjnych
+oraz dokumentacji.
+
+  Copyright (c) 2026 Lukasz Bolesta, with the help of Claude (Anthropic)
+
+  Permission is hereby granted, free of charge, to any person obtaining
+  a copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Tlumaczenie pomocnicze: kazdy moze bezplatnie uzywac, kopiowac,
+zmieniac, laczyc, publikowac, rozpowszechniac, sublicencjonowac
+i sprzedawac kopie oprogramowania, pod warunkiem, ze powyzsza informacja
+o prawach autorskich i ta zgoda zostana dolaczone do wszystkich kopii
+lub istotnych czesci. Oprogramowanie dostarczane jest bez gwarancji;
+autorzy nie odpowiadaja za szkody zwiazane z jego uzyciem.
+
+
+3. SBEMU.EXE - GNU GENERAL PUBLIC LICENSE, WERSJA 2
+---------------------------------------------------
+SBEMU.EXE to zmodyfikowana wersja SBEMU (https://github.com/crazii/SBEMU),
+emulatora Sound Blastera / OPL3 dla czystego DOS-u, na licencji GNU GPL
+w wersji 2. Pelny tekst licencji: GPL2.TXT.
+
+SBEMU zawiera kod:
+  * SBEMU - crazii i wspolautorzy projektu SBEMU;
+  * sterowniki kart dzwiekowych MPXPlay - (C) 1998-2008 PDSoft (Attila
+    Padar), http://mpxplay.sourceforge.net;
+  * emulator OPL DBOPL z DOSBox - (C) 2002-2021 The DOSBox Team (GPL);
+  * TinySoundFont - Bernhard Schelling (MIT);
+  * biblioteka C i kod startowy DJGPP - DJ Delorie i inni.
+
+Zmiany dla SBUSB (Copyright (c) 2026 Lukasz Bolesta, z pomoca Claude;
+GNU GPL v2 lub, do wyboru, dowolna pozniejsza wersja):
+  * nowy sterownik wyjscia i wejscia LINE IN USB Audio Class 1.0 / OHCI
+    (mpxplay/au_cards/sc_usbpcm.c, usbpcmct.h);
+  * tabela glosnosci miksera SB16, mapowanie miksera SB Pro, opcjonalna
+    zamiana L/P, strategia przydzialu pamieci przy starcie (main.c,
+    sbemu.c, au_cards.c, makefile).
+
+Kod zrodlowy: pelne zrodla odpowiadajace temu SBEMU.EXE sa w pliku
+SBEMUSRC.ZIP, rozpowszechnianym razem z programem. W nim SBEMU.DIF
+zawiera same zmiany, a BASECOMM.TXT podaje wersje wyjsciowa SBEMU
+(github.com/crazii/SBEMU). Jesli przekazujesz SBEMU.EXE dalej, musisz
+przekazac tez zrodla (albo pisemna oferte ich udostepnienia) i tekst GPL.
+
+Informacja DJGPP: SBEMU.EXE zbudowano kompilatorem DJGPP i zawiera kod
+biblioteki uruchomieniowej DJGPP. DJGPP jest darmowy i mozna go pobrac
+z https://www.delorie.com/djgpp/
+
+
+4. INNE PROGRAMY DOLACZONE BEZ ZMIAN
+------------------------------------
+Te pliki sa skopiowane bez zmian i naleza do swoich autorow. Licencje
+podano w takim zakresie, w jakim udalo sie je sprawdzic.
+
+  JEMMEX.EXE, JLOAD.EXE, QPIEMU.DLL
+      Jemm (v5.84) autorstwa Japheth, z kodem Toma Ehlerta i Michaela
+      Devore. FreeDOS podaje dla Jemm licencje Artistic License;
+      dokumentacja JLOAD mowi, ze to freeware, ktory mozna
+      rozpowszechniac. https://github.com/Baron-von-Riedesel/Jemm
+  HIMEMX.EXE
+      HimemX autorstwa Japheth. Zmiany Japheth sa w domenie publicznej;
+      program wywodzi sie z FreeDOS Himem (prawa: Till Gerken i Tom
+      Ehlert, licencja GPL i/lub Artistic).
+      https://github.com/Baron-von-Riedesel/HimemX
+  HDPMI32I.EXE
+      HDPMI z HX DOS Extender, (c) Japheth (freeware, srodowisko
+      uruchomieniowe mozna rozpowszechniac z dowolna aplikacja); wariant
+      "i" z przechwytywaniem portow rozwija crazii dla SBEMU.
+      https://github.com/Baron-von-Riedesel/HX
+      https://github.com/crazii/HX
+  KERNEL.SYS, COMMAND.COM (tylko w obrazie CF)
+      Jadro FreeDOS i FreeCOM, GNU GPL, z plikow FreeDOS 1.4 dolaczonych
+      do programu Rufus. Zrodla: https://github.com/FDOS oraz
+      https://www.freedos.org
+
+
+5. NARZEDZIA UZYTE DO BUDOWY I TESTOW (NIE SA DOLACZONE)
+--------------------------------------------------------
+Podziekowania dla autorow:
+  * GCC 13 i GNU Binutils (16-bitowe programy .COM, gcc -m16) - FSF, GPL;
+  * kompilator skrosny DJGPP (GCC 12.2) - DJ Delorie i zespol DJGPP;
+  * NASM - The NASM Authors, BSD 2-clause;
+  * mtools i dosfstools (mkfs.fat) - budowa obrazu CF, GPL;
+  * QEMU (pci-ohci, usb-audio, sb16) - maszyna testowa, GPL v2;
+  * Python 3 - licencja Python Software Foundation;
+  * Rufus, Pete Batard (GPL v3) - zapis obrazow; zrodlo plikow
+    startowych FreeDOS;
+  * projekt FreeDOS i Japheth - ich dokumentacja byla stale uzywana;
+  * Claude (Anthropic) - asystent AI, ktory pomagal pisac kod
+    i dokumentacje pod kierunkiem tworcy.
+
+
+6. CZEGO NIE MA W PAKIECIE / ZNAKI TOWAROWE
+-------------------------------------------
+* Pakiet nie zawiera zadnej czesci MS-DOS. Pod MS-DOS 6.22 / 7.1
+  instalator tylko edytuje Twoje CONFIG.SYS i AUTOEXEC.BAT.
+* Gry nie sa czescia SBUSB. Prywatny obraz testowy moze zawierac
+  Alien Carnage (freeware, (c) John Passfield); nie rozpowszechniaj tego
+  obrazu - rozpowszechniaj tylko pakiety SBUSB.
+* Sound Blaster jest znakiem towarowym Creative Technology Ltd.
+  Behringer, Texas Instruments, C-Media, GeneralPlus, DM&P, ICOP (eBOX)
+  i inne nazwy naleza do ich wlascicieli. SBUSB nie jest powiazany
+  z zadna z tych firm ani przez nie popierany.

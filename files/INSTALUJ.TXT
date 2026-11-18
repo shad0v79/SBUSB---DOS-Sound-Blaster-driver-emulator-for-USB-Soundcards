@@ -1,0 +1,49 @@
+SBUSB 1.0 LITE - INSTALACJA
+===========================
+
+SBEMU (emulator Sound Blastera 16) ze sterownikiem karty dzwiekowej USB
+(OHCI, USB Audio 1.0). Przygotowane dla eBOX-2300SX (Vortex86SX, bez FPU),
+karty Behringer UCA202 (PCM2902) i GeneralPlus 1B3F:2008.
+
+Wymagania: DOS (FreeDOS 1.x, MS-DOS 6.22 lub 7.1), procesor 386+, kontroler
+USB OHCI, ok. 1 MB miejsca na dysku.
+
+1. Skopiuj zawartosc paczki na dyskietke, pendrive albo dysk.
+2. Uruchom:  INSTALL
+     INSTALL /F         pelne menu (5 sprawdzonych konfiguracji)
+     INSTALL /2         krotkie menu (2 pozycje)
+     INSTALL /D:C:\KAT  inny katalog (domyslnie C:\SBUSB)
+     INSTALL /Y         bez pytan (domyslnie pelne menu)
+     INSTALL /N         tylko pliki, bez zmian w CONFIG/AUTOEXEC
+     INSTALL /U         odinstalowanie (przywraca kopie *.SBU)
+3. Pelne menu - te same konfiguracje, ktore sprawdzono na eBOX-2300SX:
+     SB16 przez USB: gry, pamiec XMS              (JEMMEX bez EMS)
+     SB16 przez USB: gry, pamiec XMS + EMS        (JEMMEX z EMS)
+     SB16 przez USB: test karty, nagrywanie, mikser (SBMIX, USBREC, USBMIX)
+     Karta USB bez SBEMU: USBTONE, CPUTEST        (HIMEMX)
+     SB16 przez USB: diagnostyka (SBEMU recznie)
+   Krotkie menu: tylko dwie pierwsze pozycje.
+   Dotychczasowa konfiguracja zostaje pierwsza i domyslna. Menedzery pamieci
+   (HIMEM, EMM386...) laduja sie tylko w niej; w nowych pozycjach zastepuje
+   je JEMMEX albo HIMEMX. Inne sterowniki (CD-ROM, mysz) laduja sie zawsze.
+   Kopie: CONFIG.SBU / FDCONFIG.SBU, AUTOEXEC.SBU (albo FDAUTO.SBU).
+4. Uruchom komputer ponownie i wybierz nowa pozycje menu.
+
+Ustawienia w SBUSB.BAT: SET SBIRQ=5 (przerwanie SB: 5, 7 albo 9),
+SET USBBUF=L32 (bufor = opoznienie dzwieku, L16..L128).
+Na eBOX-ie ustawienia JEMMEX sa dobierane automatycznie (X=E000-EFFF,
+ramka EMS D000); na innych komputerach X=TEST.
+Jesli CONFIG.SYS ma juz skomplikowane menu, instalator niczego nie zmienia
+i zapisuje instrukcje w SBUSB\RECZNIE.TXT. Gdy w menu FreeDOS brakuje
+wolnych numerow na pelne menu, uzyj INSTALL /2.
+Gdyby system nie wystartowal: F5 przy starcie pomija CONFIG/AUTOEXEC,
+potem INSTALL /U.
+MS-DOS 7.1 z Windows 98: IO.SYS sam laduje HIMEM.SYS z katalogu WINDOWS,
+co moze kolidowac z JEMMEX - nietestowane. Instalacja pod MS-DOS
+nie byla sprawdzana na prawdziwym MS-DOS.
+Programy testowe (SBMIX, USBREC...) wyswietlaja komunikaty po polsku.
+Wiecej: CZYTAJ.TXT.
+
+Licencja: LICENCJA.TXT (tworca: Lukasz Bolesta, z pomoca Claude).
+SBEMU.EXE jest na licencji GNU GPL v2 (GPL2.TXT); pelne zrodla w pliku
+SBEMUSRC.ZIP - przekazuj go razem z programem.

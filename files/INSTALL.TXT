@@ -1,0 +1,50 @@
+SBUSB 1.0 LITE - INSTALLATION
+=============================
+
+SBEMU (Sound Blaster 16 emulator) with a USB sound card driver (OHCI,
+USB Audio 1.0). Made for the eBOX-2300SX (Vortex86SX, no FPU), the
+Behringer UCA202 (PCM2902) and GeneralPlus 1B3F:2008 cards.
+
+Requirements: DOS (FreeDOS 1.x, MS-DOS 6.22 or 7.1), 386+ CPU, an OHCI USB
+controller, about 1 MB of disk space.
+
+1. Copy the package to a floppy, USB stick or disk.
+2. Run:  INSTALL
+     INSTALL /F         full menu (5 tested configurations)
+     INSTALL /2         short menu (2 entries)
+     INSTALL /D:C:\DIR  other directory (default C:\SBUSB)
+     INSTALL /Y         no questions (full menu by default)
+     INSTALL /N         files only, CONFIG/AUTOEXEC unchanged
+     INSTALL /U         uninstall (restores the *.SBU backups)
+3. Full menu - the same configurations that were tested on the eBOX-2300SX:
+     SB16 over USB: games, XMS memory             (JEMMEX without EMS)
+     SB16 over USB: games, XMS + EMS memory       (JEMMEX with EMS)
+     SB16 over USB: card test, recording, mixer   (SBMIX, USBREC, USBMIX)
+     USB card without SBEMU: USBTONE, CPUTEST     (HIMEMX)
+     SB16 over USB: diagnostics (manual SBEMU)
+   Short menu: only the first two entries.
+   The previous configuration stays as the first, default entry. Memory
+   managers (HIMEM, EMM386...) load only there; JEMMEX or HIMEMX replaces
+   them in the new entries. Other drivers (CD-ROM, mouse) always load.
+   Backups: CONFIG.SBU / FDCONFIG.SBU, AUTOEXEC.SBU (or FDAUTO.SBU).
+4. Reboot and choose a new menu entry.
+
+Settings in SBUSB.BAT: SET SBIRQ=5 (SB interrupt: 5, 7 or 9),
+SET USBBUF=L32 (buffer = sound latency, L16..L128).
+On the eBOX the JEMMEX settings are chosen automatically (X=E000-EFFF,
+EMS frame D000); on other computers X=TEST.
+If CONFIG.SYS already has a complex menu, the installer changes nothing and
+writes instructions to SBUSB\MANUAL.TXT. If the FreeDOS menu lacks free
+numbers for the full menu, use INSTALL /2.
+If the system does not start: F5 at boot skips CONFIG/AUTOEXEC, then run
+INSTALL /U.
+MS-DOS 7.1 from Windows 98: IO.SYS loads HIMEM.SYS from the WINDOWS directory
+by itself, which may conflict with JEMMEX - untested. Installation under
+MS-DOS has not been checked on a real MS-DOS.
+The test programs (SBMIX, USBREC...) and some warnings of the USB driver
+in SBEMU are in Polish.
+More: README.TXT.
+
+Licence: LICENSE.TXT (creator: Lukasz Bolesta, with the help of Claude).
+SBEMU.EXE is licensed under the GNU GPL v2 (GPL2.TXT); the complete source is
+in SBEMUSRC.ZIP - pass it on together with the program.

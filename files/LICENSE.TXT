@@ -1,0 +1,156 @@
+SBUSB 1.0 Lite - Sound Blaster 16 through a USB sound card in DOS
+LICENCE AND CREDITS
+==================================================================
+(Polska wersja: LICENCJA.TXT)
+
+Creator: Lukasz Bolesta, with the help of Claude (an AI assistant made
+by Anthropic).
+
+SBUSB is a set of separate programs. Each one keeps the licence of its
+authors. The table below says which licence applies to which file;
+sections 2-6 give the details.
+
+  File(s)                         Licence             Copyright holder(s)
+  ------------------------------  ------------------  ---------------------
+  USBTONE, CPUTEST, SBTEST,       MIT (section 2)     Lukasz Bolesta
+  SBMIX, USBREC, USBMIX, PAMIEC,
+  STRONA, INSTALL (.COM),
+  batch/config files, docs,
+  build scripts
+  SBEMU.EXE (with the USB module)  GNU GPL v2          crazii and SBEMU
+                                  (section 3)         contributors, others,
+                                                      Lukasz Bolesta (USB)
+  JEMMEX.EXE, JLOAD.EXE,          Artistic License /  Japheth, Tom Ehlert,
+  QPIEMU.DLL                      freeware (sect. 4)  Michael Devore
+  HIMEMX.EXE                      Public Domain +     Japheth; Till Gerken,
+                                  GPL/Artistic (4)    Tom Ehlert
+  HDPMI32I.EXE                    freeware (sect. 4)  Japheth, crazii
+  KERNEL.SYS, COMMAND.COM         GNU GPL (sect. 4)   FreeDOS project
+  (image only)
+
+
+1. NO WARRANTY
+--------------
+The whole package is provided "AS IS", WITHOUT WARRANTY OF ANY KIND.
+It talks directly to PCI and USB hardware and changes CONFIG.SYS and
+AUTOEXEC.BAT (the installer keeps backups *.SBU). Use it at your own
+risk.
+
+
+2. OWN PROGRAMS - MIT LICENSE
+-----------------------------
+Applies to: USBTONE.COM, CPUTEST.COM, SBTEST.COM, SBMIX.COM, USBREC.COM,
+USBMIX.COM, PAMIEC.COM, STRONA.COM, INSTALL.COM, their sources (main.c,
+cputest.c, sbtest.c, sbmix.c, usbrec.c, usbmix.c, pamiec.c, strona.c,
+install.c, kbtest.c, rotate.h, usbpcmct.h, sine.h, dbtab.h, start.S,
+link.ld, mbr.asm), build.sh, build_img.py, the batch and configuration
+files and the documentation.
+
+  Copyright (c) 2026 Lukasz Bolesta, with the help of Claude (Anthropic)
+
+  Permission is hereby granted, free of charge, to any person obtaining
+  a copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+3. SBEMU.EXE - GNU GENERAL PUBLIC LICENSE, VERSION 2
+----------------------------------------------------
+SBEMU.EXE is a modified build of SBEMU (https://github.com/crazii/SBEMU),
+Sound Blaster / OPL3 emulator for pure DOS, licensed under the GNU GPL
+version 2. The full licence text is in GPL2.TXT.
+
+SBEMU contains code from:
+  * SBEMU - crazii and the SBEMU contributors;
+  * MPXPlay sound card drivers - (C) 1998-2008 PDSoft (Attila Padar),
+    http://mpxplay.sourceforge.net;
+  * DOSBox DBOPL OPL emulator - (C) 2002-2021 The DOSBox Team (GPL);
+  * TinySoundFont - Bernhard Schelling (MIT);
+  * DJGPP C library and start-up code - DJ Delorie and others.
+
+Changes made for SBUSB (Copyright (c) 2026 Lukasz Bolesta, with the help
+of Claude; GNU GPL v2 or, at your option, any later version):
+  * new USB Audio Class 1.0 / OHCI output and LINE IN driver
+    (mpxplay/au_cards/sc_usbpcm.c, usbpcmct.h);
+  * Sound Blaster 16 mixer volume table, SB Pro mixer mapping, optional
+    L/R swap, memory allocation strategy at start-up (main.c, sbemu.c,
+    au_cards.c, makefile).
+
+Source code: the complete corresponding source of this SBEMU.EXE is in
+SBEMUSRC.ZIP, distributed together with the program. Inside it,
+SBEMU.DIF lists only the changes and BASECOMM.TXT names the original
+SBEMU revision (github.com/crazii/SBEMU). If you pass SBEMU.EXE on, you
+must pass on the source (or a written offer for it) and the GPL text.
+
+DJGPP notice: SBEMU.EXE is built with DJGPP and contains DJGPP runtime
+code. DJGPP is free and can be obtained from https://www.delorie.com/djgpp/
+
+
+4. OTHER PROGRAMS INCLUDED UNCHANGED
+------------------------------------
+These files are copied unchanged. They belong to their authors; their
+licences are stated here as far as they could be checked.
+
+  JEMMEX.EXE, JLOAD.EXE, QPIEMU.DLL
+      Jemm (v5.84) by Japheth, with code by Tom Ehlert and Michael
+      Devore. FreeDOS lists Jemm under the Artistic License; JLOAD's
+      own documentation says it is freeware and may be redistributed.
+      https://github.com/Baron-von-Riedesel/Jemm
+  HIMEMX.EXE
+      HimemX by Japheth. Japheth's changes are Public Domain; it is
+      derived from FreeDOS Himem, copyright Till Gerken and Tom Ehlert,
+      GPL and/or Artistic License.
+      https://github.com/Baron-von-Riedesel/HimemX
+  HDPMI32I.EXE
+      HDPMI from the HX DOS Extender, (c) Japheth (freeware, the runtime
+      may be distributed with any application); the "i" variant with
+      I/O port trapping is maintained by crazii for SBEMU.
+      https://github.com/Baron-von-Riedesel/HX
+      https://github.com/crazii/HX
+  KERNEL.SYS, COMMAND.COM (in the CF image only)
+      FreeDOS kernel and FreeCOM, GNU GPL, taken from the FreeDOS 1.4
+      files shipped with Rufus. Sources: https://github.com/FDOS and
+      https://www.freedos.org
+
+
+5. TOOLS USED TO BUILD AND TEST (NOT INCLUDED)
+----------------------------------------------
+With thanks to the authors of:
+  * GCC 13 and GNU Binutils (16-bit .COM programs, gcc -m16) - FSF, GPL;
+  * DJGPP cross compiler (GCC 12.2) - DJ Delorie and the DJGPP team;
+  * NASM - The NASM Authors, BSD 2-clause;
+  * mtools and dosfstools (mkfs.fat) - CF image builder, GPL;
+  * QEMU (pci-ohci, usb-audio, sb16) - test machine, GPL v2;
+  * Python 3 - Python Software Foundation licence;
+  * Rufus by Pete Batard (GPL v3) - writing images; source of the
+    FreeDOS boot files;
+  * FreeDOS project and Japheth, whose documentation was used throughout;
+  * Claude (Anthropic) - AI assistant that helped write the code and
+    documentation, under the direction of the creator.
+
+
+6. NOT INCLUDED / TRADEMARKS
+----------------------------
+* No part of MS-DOS is included. On MS-DOS 6.22 / 7.1 the installer
+  only edits your own CONFIG.SYS and AUTOEXEC.BAT.
+* Games are not part of SBUSB. The private test image may contain
+  Alien Carnage (freeware, (c) John Passfield); do not redistribute that
+  image - distribute only the SBUSB packages.
+* Sound Blaster is a trademark of Creative Technology Ltd. Behringer,
+  Texas Instruments, C-Media, GeneralPlus, DM&P, ICOP (eBOX) and other
+  names are trademarks of their owners. SBUSB is not affiliated with or
+  endorsed by any of them.

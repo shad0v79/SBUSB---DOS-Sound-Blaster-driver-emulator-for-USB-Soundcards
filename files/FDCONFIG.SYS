@@ -1,0 +1,19 @@
+MENUCOLOR=7,0
+MENU
+MENU   eBOX-2300SX: Sound Blaster 16 przez USB / via USB (FreeDOS)
+MENU
+MENU   1 - Gry: SB16, pamiec XMS              (Games: SB16, XMS)
+MENU   2 - Gry: SB16, pamiec XMS + EMS        (Games: SB16, XMS + EMS)
+MENU   3 - Test karty, nagrywanie, mikser     (Card test, recording, mixer)
+MENU   4 - Bez SBEMU: USBTONE, CPUTEST        (Without SBEMU)
+MENU   5 - Diagnostyka: SBEMU recznie         (Diagnostics: manual SBEMU)
+MENU
+MENUDEFAULT=1,5
+4?DEVICE=\HIMEMX.EXE
+135?DEVICE=\SBEMU\JEMMEX.EXE X2MAX=8192 NOEMS X=E000-EFFF
+2?DEVICE=\SBEMU\JEMMEX.EXE X2MAX=8192 FRAME=D000 X=E000-EFFF
+DOS=HIGH,UMB
+FILES=30
+BUFFERS=20
+LASTDRIVE=Z
+SHELL=\COMMAND.COM \ /E:1024 /P
